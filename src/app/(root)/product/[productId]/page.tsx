@@ -48,7 +48,7 @@ export default async function Product({
       </div>
 
       <h3 className="text-xl text-center">Comments</h3>
-      <CommentList comments={product.comments || []} />
+      <CommentList productId={product.id} comments={product.comments || []} />
       <div className="container mx-auto flex justify-between">
         <ModalUpdateProducts />
         <ModalAddComment

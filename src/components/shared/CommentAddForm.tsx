@@ -34,7 +34,10 @@ export const CommentAddForm: FC<CommentAddFormProps> = ({ productId = 0 }) => {
       resolver: zodResolver(CommentFormSchema),
     });
   const { errors } = formState;
-  const onSubmit = async (data: CommentFormSchemaValues) => {};
+  const onSubmit = async (data: CommentFormSchemaValues) => {
+    dispatch(addCommentAsync(data));
+    reset();
+  };
 
   return (
     <form

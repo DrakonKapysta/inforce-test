@@ -1,6 +1,7 @@
 import { ProductService } from "@/services/ProductService";
 import { Comment, Product } from "@/types/product";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { revalidatePath } from "next/cache";
 
 export const addProductAsync = createAsyncThunk(
   "product/addProduct",
@@ -9,6 +10,18 @@ export const addProductAsync = createAsyncThunk(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
+    });
+
+    const data = await response.json();
+    return data;
+  }
+);
+export const fetchAllProducts = createAsyncThunk(
+  "product/fetchAllProducts",
+  async () => {
+    const response = await fetch("http://localhost:3000/api/products", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     });
 
     const data = await response.json();
@@ -75,6 +88,7 @@ export const productSlice = createSlice({
         (product) => product.id !== action.payload
       );
     },
+
     updateProduct: (state, action: PayloadAction<Product>) => {
       state.products = state.products.map((product) => {
         if (product.id === action.payload.id) {
@@ -88,11 +102,7 @@ export const productSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(addProductAsync.pending, (state) => {
-      console.log("addProduct pending");
-    });
     builder.addCase(addProductAsync.fulfilled, (state, action) => {
-      console.log("addProduct fulfilled", action.payload);
       state.products.push(action.payload.product);
     });
     builder.addCase(deleteProductAsync.fulfilled, (state, action) => {
@@ -103,8 +113,33 @@ export const productSlice = createSlice({
     builder.addCase(deleteCommentAsync.fulfilled, (state, action) => {
       const productId = action.payload.product.productId;
       const commentProduct = action.payload.product.id;
+
+      state.products = [
+        ...state.products.map((product) => {
+          if (product.id === productId) {
+            return {
+              ...product,
+              comments: (product.comments || []).filter(
+                (comment) => comment.id !== commentProduct
+              ),
+            };
+          }
+          return product;
+        }),
+      ];
     });
-    builder.addCase(addCommentAsync.fulfilled, (state, action) => {});
+    builder.addCase(addCommentAsync.fulfilled, (state, action) => {
+      state.products = state.products.map((product) => {
+        if (product.id === action.payload[0].productId) {
+          product.comments = action.payload;
+          return product;
+        }
+        return product;
+      });
+    });
+    builder.addCase(fetchAllProducts.fulfilled, (state, action) => {
+      state.products = action.payload.products;
+    });
   },
 });
 

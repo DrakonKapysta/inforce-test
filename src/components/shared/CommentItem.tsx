@@ -1,9 +1,12 @@
 "use client";
-import { useAppDispatch } from "@/hooks/reduxHooks";
-import { deleteCommentAsync } from "@/redux/features/product/productSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
+import {
+  deleteCommentAsync,
+  fetchAllProducts,
+} from "@/redux/features/product/productSlice";
 import { ProductService } from "@/services/ProductService";
 import { Comment } from "@/types/product";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 
 interface CommentProps {
   comment: Comment;
